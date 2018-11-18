@@ -1,0 +1,1008 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <title>Woan Web Media Player</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <script src="javascripts/jquery.js" type="text/javascript"></script>
+  <script type="text/javascript" src="javascripts/swfobject.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://static.anystreaming.cn/w1/socket_io.js"></script>
+
+  <style>
+    .layout{
+      width: 1400px;
+      height: 850px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items:center; 
+      position: relative;
+    }
+     .player-wrapper {
+      width: 643px;
+      height: 464px;
+    }
+
+    .call-btn-css {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+    }
+    .call-btn-css1 {
+      position: absolute;
+      right: 20px;
+      bottom: 100px;
+      width: 30px;
+      height: 30px;
+    }
+    .zoom1,.zoom2,.zoom3,.zoom4{
+      position: absolute;
+    }
+    .xiao{
+      width: 20px;
+      height: 20px;
+    }
+    .zoom{
+      z-index: 2;
+      top: 0;
+      left: 0;
+    }
+
+    .global-call-css {
+      position: absolute;
+      left: 0;
+      top: -40px;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      padding: 0;
+      margin-left: 40px;
+      background-size: cover;
+      background-repeat: no-repeat;
+      cursor: default;
+    }
+
+    .global-call-css:focus, .global-call-css:hover {
+      background-color: transparent;
+    }
+
+    .global-call {
+      background-image: url('./images/phone.png') !important;
+    }
+
+    .global-call-on {
+      background-image: url('./images/nophone.png');
+    }
+
+    .woan-player {
+      border:1px solid  #5bc0de;
+      width:640px;
+      height:360px;
+    }
+
+    .volumn-css {
+      position: absolute;
+      left: 20px;
+      bottom: 100px;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      padding: 0;
+      cursor: default;
+      background-color: transparent;
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-image: url('./images/volumn_off.png');
+    }
+
+    .volumn-css:focus, .volumn-css:hover {
+      background-color: transparent;
+    }
+
+    .volumn-css-off {
+      background-image: url('./images/volumn_on.png');
+    }
+
+  </style>
+</head>
+
+<body>
+  <div align="center" id="app">
+    <h1 >网页播放器演示
+    </h1>
+    <article class="layout">
+        <el-button @click="globalUpHandle" class="global-call-css global-call" :disabled="!fastClick" v-if="!phone_status && (chosenum == null)"></el-button>
+        <el-button @click="globalDownHandle" class="global-call-css global-call-on" v-if="phone_status && (chosenum == null)"></el-button>
+        <div class="player-wrapper dom1"  ref="dom1" ref="btn" > 
+          <section class="zoom1">
+            <div id="woan_player1"  class="woan-player">
+              <p>请在下方填写播放地址</p>
+              
+            </div>
+            <!-- <div class="btn-wrapper"> -->
+              <div>
+                  <div  @click='stretch("isBtnZoom1")'class="call-btn-css xiao flex1" v-show = 'isBtnZoom1'>
+                    <img src="./images/suo.png" alt="">
+                  </div>
+                  <div  @click='shrink("isBtnZoom1")' class="call-btn-css xiao  flex1ed" v-show = '!isBtnZoom1'>
+                    <img src="./images/fang.png" alt="">
+                  </div>
+              </div>
+                <div class="call-btn-css1" 
+                v-if="!phone_status || ((chosenum != null) ? (chosenum != 1) : false) " size="mini" @click="btnCallHandle(1)">
+                <img src="./images/phone.png" alt="">
+              </div>
+              <div class="call-btn-css1"
+                v-if="phone_status && ((chosenum != null) ? (chosenum == 1) : false)" @click="hangUpHandle(false)">
+                <img src="./images/nophone.png" alt="">
+              </div>
+              <!-- 静音控制 -->
+              <el-button class="volumn-css" :class="{
+                'volumn-css-off': volumn_player1
+              }" @click="valumnHandle('woan_player1')"></el-button>
+            <!-- </div> -->
+            <table>
+              <!--<tr>
+                <el-slider :min="0" :max="80" :format-tooltip="formatTooltip" @change="sliderHandle" v-model="player_slider1"></el-slider>
+              </tr> -->
+              <tr>
+                <td> <input type="text" id="url1" style="width: 320px;height: 30px;" value="rtmp://118.31.6.145:8015/live/0166"></td>
+                <td>
+                  <div class="btn btn-primary play1 btn-small" style="margin-top: -10px;">播放</div>
+                  <div v-if="false" class="btn btn-primary btn-small" @click="changeHandle('woan_player1')" style="margin-top: -10px;">切换</div>
+                </td>
+              </tr>
+            </table>
+          </section>          
+
+        </div>
+        <div class="player-wrapper" ref="dom2">
+          <section class="zoom2">
+            <div id="woan_player2" class="woan-player" >
+              <p>请在下方填写播放地址</p>
+            </div>
+            <!-- <div class="btn-wrapper"> -->
+            <div>
+              <div  @click='stretch("isBtnZoom2")'class="call-btn-css xiao flex2" v-show = 'isBtnZoom2'>
+                <img src="./images/suo.png" alt="">
+              </div>
+              <div  @click='shrink("isBtnZoom2")' class="call-btn-css xiao  flex2ed" v-show = '!isBtnZoom2'>
+                <img src="./images/fang.png" alt="">
+              </div>
+            </div>
+            
+            <div  class="call-btn-css1" 
+              v-if="!phone_status || ((chosenum != null) ? (chosenum != 2) : false) " size="mini" @click="btnCallHandle(2)">
+              <img src="./images/phone.png" alt="">
+            </div>
+            <div class="call-btn-css1"  size="mini"
+              v-if="phone_status && ((chosenum != null) ? (chosenum == 2) : false)" @click="hangUpHandle(false)">
+              <img src="./images/nophone.png" alt="">
+            </div>
+            <!-- 静音控制 -->
+            <el-button class="volumn-css" :class="{
+                'volumn-css-off': volumn_player2
+              }" @click="valumnHandle('woan_player2')"></el-button>
+            <!-- </div> -->
+            <table>
+              <tr>
+                <td> <input type="text" id="url2" style="width: 320px;height: 30px;" value="rtmp://118.31.6.145:8015/live/0167"></td>
+                <td>
+                  <div class="btn btn-primary play2 btn-small" style="margin-top: -10px;">播放</div>
+                </td>
+              </tr>
+            </table>
+          </section>          
+        </div>
+
+        <div  class="player-wrapper"  ref="dom3" >
+          <section class="zoom3">
+            <div id="woan_player3"  class="woan-player">
+              <p>请在下方填写播放地址</p>
+            </div>
+            <div>
+              <div>
+                  <div  @click='stretch("isBtnZoom3")'class="call-btn-css xiao flex3" v-show = 'isBtnZoom3'>
+                    <img src="./images/suo.png" alt="">
+                  </div>
+                  <div  @click='shrink("isBtnZoom3")' class="call-btn-css xiao  flex3ed" v-show = '!isBtnZoom3'>
+                    <img src="./images/fang.png" alt="">
+                  </div>
+              </div>
+              <div class="call-btn-css1" 
+                v-if="!phone_status || ((chosenum != null) ? (chosenum != 3) : false) " @click="btnCallHandle(3)">
+                <img src="./images/phone.png" alt="">
+              </div>
+              <div class="call-btn-css1" 
+                v-if="phone_status && ((chosenum != null) ? (chosenum == 3) : false)" @click="hangUpHandle(false)">
+                <img src="./images/nophone.png" alt="">
+              </div>
+              <!-- 静音控制 -->
+              <el-button class="volumn-css" :class="{
+                'volumn-css-off': volumn_player3
+              }" @click="valumnHandle('woan_player3')"></el-button>
+            </div>
+            <table>
+              <tr>
+                <td> <input type="text" id="url3" style="width: 320px;height: 30px;" value="rtmp://118.31.6.145:8015/live/0168"></td>
+                <td>
+                  <div class="btn btn-primary play3 btn-small" style="margin-top: -10px;">播放</div>
+                </td>
+              </tr>
+            </table>
+          </section>          
+        </div>
+        <div  class="player-wrapper"   ref="dom4" >
+          <section class="zoom4">
+            <div id="woan_player4"  class="woan-player">
+              <p>请在下方填写播放地址</p>    
+            </div>
+            <div>
+              <div>
+                  <div  @click='stretch("isBtnZoom4")'class="call-btn-css xiao flex4" v-show = 'isBtnZoom4'>
+                    <img src="./images/suo.png" alt="">
+                  </div>
+                  <div  @click='shrink("isBtnZoom4")' class="call-btn-css xiao  flex4ed" v-show = '!isBtnZoom4'>
+                    <img src="./images/fang.png" alt="">
+                  </div>
+              </div>
+              <div class="call-btn-css1"
+                v-if="!phone_status || ((chosenum != null) ? (chosenum != 4) : false) "  @click="btnCallHandle(4)">
+                <img src="./images/phone.png" alt="">
+              </div>
+              <div  class="call-btn-css1"
+                v-if="phone_status && ((chosenum != null) ? (chosenum == 4) : false)" @click="hangUpHandle(false)">
+                <img src="./images/nophone.png" alt="">
+              </div>
+              <!-- 静音控制 -->
+              <el-button class="volumn-css" :class="{
+                'volumn-css-off': volumn_player4
+              }" @click="valumnHandle('woan_player4')"></el-button>
+            </div>
+            <table>
+              <tr>
+                <td> <input type="text" id="url4" style="width: 320px;height: 30px;" value="rtmp://118.31.6.145:8015/live/0169"></td>
+                <td>
+                  <div class="btn btn-primary play4 btn-small" style="margin-top: -10px;">播放</div>
+                </td>
+              </tr>
+            </table>
+          </section>          
+      </div>
+    </article>
+  </div>
+
+</body>
+
+
+<script>
+  var vm = new Vue({
+    el: '#app',
+    mounted() {
+      // axios拦截器(request)
+      axios.interceptors.request.use(function(config){
+        //在请求发出之前进行一些操作
+        if(sessionStorage.token) {
+          config.headers.Authorization = 'Bearer ' + sessionStorage.token
+        }
+        return config;
+      },function(error){
+        //Do something with request error
+        return Promise.reject(error);
+      });
+      axios.post(`${this.Url}/api/v1/system/login`, {
+        //user_name: 'odtest',
+        //password: '1q2w3e4r'
+        user_name: 'root',
+        password: 'wsCloud#2018'
+      }).then(response => {
+        if (response.data.ret.code === 0) {
+          sessionStorage.setItem('token', response.data.token)
+          axios.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.token
+        }
+      })
+      this.$nextTick(() => {
+        if (window.socketIO == undefined) {
+          window.socketIO = io(this.Url, {
+            transports: ['websocket'],
+            query: {
+              type: 'global'
+            }
+          });
+          window.socketIO.on('close', () => {
+            // console.log('close===========')
+          })
+          window.socketIO.on('connect', () => {
+            // console.log('===========')
+          })
+          window.socketIO.on('error', data => {
+            // console.log(data, '----------')
+          })
+          window.socketIO.on('notify_call_status', (val) => {
+            this.cloudphone_data = val.cloud_call_info.call_status
+          })
+        }
+      })
+
+    },
+    data: function () {
+      return {
+        serial_number: '00261E680035',
+        Url: 'https://c.anystreaming.cn',
+        phone_status: false,
+        fastClick: true,
+        readyToBlur: false,
+        hasPlugin: false,
+        ws: null,
+        callData: {
+          channel: null,
+          server: null
+        },
+        chosenum: null,
+        websocketNum: 3,
+
+        isBtnZoom1:true,
+        isBtnZoom2:true,
+        isBtnZoom3:true,
+        isBtnZoom4:true,
+        
+        isPlay : true,
+        isMute : true,
+        player_slider1: 0,
+        volumn_player1: false,
+        volumn_player2: false,
+        volumn_player3: false,
+        volumn_player4: false
+      }
+    },
+    methods: {
+      // 滑动条change
+      sliderHandle (val) {
+        console.log(val, '-----------')
+        switch (val) {
+          case 1:
+            console.log(this.player_slider1, '-----')
+          break; 
+          case 2:
+          break; 
+          case 3:
+          break; 
+          case 4:
+          break; 
+        }
+      },
+
+      // 格式化slider显示
+      formatTooltip (val) {
+        return 80-val
+      },
+
+      // 静量控制
+      valumnHandle (id) {
+        try {
+          switch (id) {
+            case 'woan_player1':
+              if (this.volumn_player1) {
+                document.getElementById(id).setMuted(true)
+                this.volumn_player1 = false
+              }else {
+                document.getElementById(id).setMuted(false)
+                this.volumn_player1 = true
+              }
+            break;
+            case 'woan_player2':
+              if (this.volumn_player2) {
+                document.getElementById(id).setMuted(true)
+                this.volumn_player2 = false
+              }else {
+                document.getElementById(id).setMuted(false)
+                this.volumn_player2 = true
+              }
+            break;
+            case 'woan_player3':
+              if (this.volumn_player3) {
+                document.getElementById(id).setMuted (true)
+                this.volumn_player3 = false
+              }else {
+                document.getElementById(id).setMuted (false)
+                this.volumn_player3 = true
+              }
+            break;
+            case 'woan_player4':
+              if (this.volumn_player4) {
+                document.getElementById(id).setMuted (true)
+                this.volumn_player4 = false
+              }else {
+                document.getElementById(id).setMuted (false)
+                this.volumn_player4 = true
+              }
+            break;
+          }
+        }catch(err) {}
+      },
+
+      changeHandle (id) {
+        document.getElementById(id).setMediaResourceURL('rtmp://118.31.6.145:8015/live/0167');
+      },
+
+      //放大
+      stretch(data){
+        this[data] = !this[data]
+      },
+      //缩小
+      shrink(data){
+        this[data] = !this[data]
+      },
+      // 广播呼叫
+      globalUpHandle () {
+        if (this.fastClick) {
+          this.serial_number = '00261E680023'
+          this.chosenum = null
+          this.fastClick = false
+          this.readyToBlur = true
+          this.hasPlugin = false
+          this.checkClient ()
+        }
+      },
+      // 广播挂断 
+      globalDownHandle () {
+        this.$confirm('您确定停止云广播吗? ', '', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消'
+          }).then(() => {
+            if (this.ws != null) {
+              let sendMsg = {
+                "actionType": "close",
+                "value": "1",
+                // "channel": "60001001",
+                "channel": `"${this.callData.channel}"`, //连麦服务器地址120.24.6.6:8006
+                // "server": "120.24.6.6:8006",
+                "server": `"${this.callData.server}"` // 预先分配的会议号码 60001001
+              }
+              this.ws.send('1' + JSON.stringify(sendMsg))
+            }
+          }).catch(() => {
+
+          })
+      },
+      
+      btnCallHandle (num) {
+        if(this.chosenum == null){
+          switch(num) {
+            case 1:
+            this.serial_number = '00261E680023'
+            break;
+            case 2:
+            this.serial_number = '00261E680168'
+            break;
+            case 3:
+            this.serial_number = '00261E680035'
+            break;
+            case 4:
+            this.serial_number = '00261E68002F'
+            break;
+          }
+        
+          this.chosenum = num
+          
+          this.callHandle ()
+        }
+      },
+
+      callHandle () {
+        console.log(this.fastClick, this.serial_number , this.chosenum, 'callhandle')
+        if (this.fastClick && this.serial_number) {
+          this.fastClick = false
+          this.readyToBlur = true
+          this.hasPlugin = false
+          this.checkClient ()
+        }
+      },
+
+      linkWebsocket () {
+        var host = "ws://localhost:55970/test";
+        if ("WebSocket" in window) {
+          this.ws = new WebSocket(host);
+          this.connectHandle (this)
+        }
+      },
+
+      // 检测是否有talking应用
+      checkClient () {
+        let url="Anyprotocol://openprogram"
+        console.log(this.ws, 'checkclient')
+        if (this.ws == null) {
+          window.location.href = url
+          this.linkWebsocket ()
+        }else {
+          this.connectHandle (this)
+          this.callAxio ()
+        }
+      },
+
+      // 请求呼叫
+      callAxio () {
+        console.log('callAxio')
+        let params = {
+          serial_number: this.serial_number
+        }
+        if(this.chosenum == null) {
+          params.broadcast = true
+        }else {
+          params.broadcast = false
+        }
+        axios.post(`${this.Url}/api/v1/device/cloud_call`, params)
+          .then(response => {
+            if (response.data.ret.code === 0) {
+              let resp = response.data.data
+              if(this.chosenum == null) {
+                resp.channel = '999999999'
+              }
+              this.callData.channel = resp.channel
+              this.callData.server = resp.server
+              let sendMsg = {
+                "actionType": "open",
+                "value": "1",
+                // "channel": "60001001",
+                "channel": resp.channel + "", //连麦服务器地址120.24.6.6:8006
+                // "server": "120.24.6.6:8006",
+                "server": resp.server + "" // 预先分配的会议号码 60001001
+              }
+              this.ws.send('1' + JSON.stringify(sendMsg))
+            }else {
+              this.hangUpHandle (true)
+              this.$notify.error({
+                title: '失败',
+                message: `失败: ${this.errLanguage(response)}`
+              });
+            }
+          })
+      },
+
+      // 连接socket，及通话逻辑处理
+      connectHandle (self) {
+        
+        if ("WebSocket" in window) {
+          self.ws.onopen = function () {
+            console.log(`连接中`)
+            self.websocketNum = 3
+            self.hasPlugin = true
+            self.ws.send('1test')
+            if (self.ws) {
+              let sendMsg = {
+                "actionType": "test",
+                "value": "1",
+                // "channel": "60001001",
+                // "channel": `"${this.callData.channel}"`, //连麦服务器地址120.24.6.6:8006
+                // "server": "120.24.6.6:8006",
+                // "server": `"${this.callData.server}"` // 预先分配的会议号码 60001001
+              }
+              self.ws.send('1' + JSON.stringify(sendMsg))
+            }
+          }
+
+          self.ws.onmessage = function (evt) {
+            var received_msg = evt.data.slice(1);
+            if (received_msg == '') {
+              return 
+            }
+            self.hasPlugin = true
+            console.log(received_msg, '======================')
+            if (received_msg.startsWith('login|Welcome')) {
+              self.callAxio ()
+            }else if (received_msg.startsWith('ping|')) {
+              // 心跳信息
+              self.hasPlugin = true
+            }else {
+              // 获取的信息对象
+              let errorMsg = JSON.parse(received_msg)
+              // console.log(errorMsg, '===============')
+              switch(errorMsg.code) {
+                case "10001": 
+                  // 没有音频设备
+                  self.errCallHandle (errorMsg)
+                  break;
+                case "10002": 
+                  // 无法开始流
+                  self.errCallHandle (errorMsg)
+                  break;
+                case "10003": 
+                  // 断开连接盒子服务器
+                  self.errCallHandle (errorMsg)
+                  break;
+                case "10004": 
+                  // 正在连接盒子服务器
+                  break;
+                case "10005": 
+                  // 连接盒子服务器成功
+                  console.log(self.chosenum == null, '=====')
+                  if (self.chosenum == null) {
+                    self.phone_status = true
+                    self.fastClick = true
+                  }
+                  break;
+                case "10006": 
+                  // 连接盒子服务器失败
+                  self.errCallHandle (errorMsg)
+                  break;
+                case "10007":
+                  // json转义失败
+                  self.errCallHandle (errorMsg)
+                  break;
+                case "10008": 
+                case "20000":
+                  // 通话连接成功
+                  console.log((((self.chosenum != null) ? (self.chosenum != 3) : false) || self.fastClick), '------------')
+                  self.phone_status = true
+                  self.fastClick = true
+                  window.socketIO.emit('peer_connected', {
+                    serial_number: self.serial_number
+                  })
+                  break;
+                case "10009":
+                  // 通话连接断开
+				  console.log('==============');
+				  setTimeout(() => {
+					  self.phone_status = false
+					  self.chosenum = null
+					  self.fastClick = true
+					  window.socketIO.emit('peer_disconnected', {
+						serial_number: self.serial_number
+					  })
+					}, 1000)
+                  break;
+               
+              }
+            }
+          }
+          self.ws.onclose = function() {
+            self.phone_status = false
+            self.fastClick = true
+            self.ws = null
+            if (self.websocketNum == 3) {
+              self.chosenum = null
+            }
+            console.log(`关闭`)
+          }
+          self.ws.onerror = function (val) {
+            if (!self.hasPlugin) {
+              self.websocketNum --
+              console.log(self.websocketNum, 'websocketNum=========')
+              if (self.websocketNum >= 0) {
+                setTimeout(() =>{
+                  self.linkWebsocket ()
+                }, 3000)
+              }else {
+                self.fastClick = true
+                self.websocketNum = 3
+                self.$confirm(`云通话启用anytalking失败，请下载安装，或重试`, '', {
+                  confirmButtonText: '立即下载',
+                  cancelButtonText: '取消'
+                }).then(() => {
+                  location.href = 'http://up.anystreaming.cn/AnyTalking.exe'
+                }).catch(() => {
+                  
+                })
+              }
+            }
+          }
+        }
+        console.log('-----connectHandle')
+      },
+
+      hangUpHandle (type) {
+        if (!type) {
+          this.$confirm('您确定挂断云通话吗? ', '', {
+            confirmButtonText: '挂断',
+            cancelButtonText: '取消'
+          }).then(() => {
+            axios.put(`${this.Url}/api/v1/device/stop_cloud_call`, {serial_number: this.serial_number})
+              .then(response => {
+                if (response.data.ret.code === 0) {
+				
+                  if (this.ws != null) {
+                    let sendMsg = {
+                      "actionType": "close",
+                      "value": "1",
+                      // "channel": "60001001",
+                      "channel": `"${this.callData.channel}"`, //连麦服务器地址120.24.6.6:8006
+                      // "server": "120.24.6.6:8006",
+                      "server": `"${this.callData.server}"` // 预先分配的会议号码 60001001
+                    }
+                    this.ws.send('1' + JSON.stringify(sendMsg))
+                  }
+                  window.socketIO.emit('peer_disconnected', {
+                    serial_number: this.serial_number
+                  })
+				  
+                }else {
+                  this.$notify.error({
+                    title: '失败',
+                    message: `失败: ${this.errLanguage(response)}`
+                  });
+                }
+              })
+          }).catch(() => {
+
+          })
+        }else {
+          axios.put(`${this.Url}/api/v1/device/stop_cloud_call`, {serial_number: this.serial_number})
+            .then(response => {
+				      this.phone_status =false
+              this.fastClick = true
+				      this.chosenum = null
+              if (response.data.ret.code === 0) {
+			  
+                window.socketIO.emit('peer_disconnected', {
+                  serial_number: this.serial_number
+                })
+                if (this.ws != null) {
+                  let sendMsg = {
+                    "actionType": "close",
+                    "value": "1",
+                    // "channel": "60001001",
+                    "channel": `"${this.callData.channel}"`, //连麦服务器地址120.24.6.6:8006
+                    // "server": "120.24.6.6:8006",
+                    "server": `"${this.callData.server}"` // 预先分配的会议号码 60001001
+                  }
+                  this.ws.send('1' + JSON.stringify(sendMsg))
+                }
+              }else {
+                this.$notify.error({
+                  title: '失败',
+                  message: `失败: ${this.errLanguage(response)}`
+                });
+              }
+            })
+        }
+      },
+
+      errLanguage (res) {
+        return res.data.ret.cn
+      },
+
+      // 连接错误的提示逻辑
+      errCallHandle (errorMsg) {
+        this.fastClick = true
+        // console.log('error---------')
+        this.$notify.error({
+          title: '失败',
+          message: `失败: ${errorMsg.msg}`
+        });
+        this.hangUpHandle (true)
+      },
+    }
+    })
+</script>
+<script type="text/javascript">
+  $(".play1").click(function () {
+    player1();
+  });
+  $(".play2").click(function () {
+    player2();
+  });
+  $(".play3").click(function () {
+    player3();
+  });
+  $(".play4").click(function () {
+    player4();
+  });
+  $(".flex1ed").click(function () {
+    playered('.zoom1','woan_player1');
+  });
+  $(".flex2ed").click(function () {
+    playered('.zoom2','woan_player2');
+  });
+  $(".flex3ed").click(function () {
+    playered('.zoom3','woan_player3');
+  });
+  $(".flex4ed").click(function () {
+    playered('.zoom4','woan_player4');
+  });
+
+  $(".flex1").click(function () {
+    player('.zoom1','.flex1','woan_player1');
+  });
+  $(".flex2").click(function () {
+    player('.zoom2','.flex2','woan_player2');
+  });
+  $(".flex3").click(function () {
+    player('.zoom3','.flex3','woan_player3');
+  });
+  $(".flex4").click(function () {
+    player('.zoom4','.flex4','woan_player4');
+  });
+  //放大
+  function player(item,data,id) {
+    if (swfobject.getObjectById(id)) {
+      $(data).position = 'absolute';
+      $(item).addClass('zoom');
+      swfobject.getObjectById(id).width = 1400+'px';
+      swfobject.getObjectById(id).height = 800+'px';
+      document.getElementById(id).setMuted(false);
+      try {
+        switch (id) {
+          case 'woan_player1':
+            vm.volumn_player1 = true
+          break;
+          case 'woan_player2':
+            vm.volumn_player2 = true
+          break;
+          case 'woan_player3':
+            vm.volumn_player3 = true
+          break;
+          case 'woan_player4':
+            vm.volumn_player4 = true
+          break;
+        }
+      }catch(err) {}
+    }
+  }
+  //缩小
+  function playered(item,id) {
+    if (swfobject.getObjectById(id)) {
+      $(item).removeClass('zoom');
+      swfobject.getObjectById(id).width = 640+'px';
+      swfobject.getObjectById(id).height = 360+'px';
+      document.getElementById(id).setMuted(true);
+      try {
+        switch (id) {
+          case 'woan_player1':
+            vm.volumn_player1 = false
+          break;
+          case 'woan_player2':
+            vm.volumn_player2 = false
+          break;
+          case 'woan_player3':
+            vm.volumn_player3 = false
+          break;
+          case 'woan_player4':
+            vm.volumn_player4 = falses
+          break;
+        }
+      }catch(err) {}
+    }
+  }
+  function onMediaPlayerStateChange(state, playerId) {
+        //console.log("state change: " + state);
+  }
+  function onJavaScriptBridgeCreated(playerId, event_str) {
+    if ("onJavaScriptBridgeCreated" != event_str) {
+      return;
+    }
+    document.getElementById(playerId).addEventListener("hover", function (e) {
+      console.log(e, '=========s');
+    });
+    //监听播放时间与时长事件
+    document.getElementById(playerId).addEventListener("mediaPlayerStateChange", "onMediaPlayerStateChange");
+  } 
+  function player1() {
+    var url = $("#url1").val();
+    console.log(url, '------')
+    swfobject.embedSWF(
+      "swf/woan_wmp.swf", "woan_player1", 640, 360, "10.1.0", "expressInstall.swf", {
+
+        src: url,
+        autoPlay: "true",
+        muted: true,
+        verbose: true,
+        controlBarMode: "none",
+        controlBarAutoHide: "true",
+        controlBarPosition: "bottom",
+        streamType: "live",
+        expandedBufferTime: 0.2,
+        liveBufferTime: 0.1,
+        minContinuousPlayback: 1,
+        poster: "images/poster.png",
+        plugin_hls: "swf/wmp_plugin_hls.swf",
+        error: false,
+        buffer: false,
+        javascriptCallbackFunction: "onJavaScriptBridgeCreated"
+      }, {
+        allowFullScreen: "false",
+        wmode: "opaque"
+      },
+      { id: "woan_player1" }
+    );
+  console.log('实例',swfobject)
+  } 
+  function player2() {
+
+    var url = $("#url2").val();
+    swfobject.embedSWF(
+      "swf/woan_wmp.swf", "woan_player2", 640, 360, "10.1.0", "expressInstall.swf", {
+
+        src: url,
+        autoPlay: "true",
+        verbose: true,
+        controlBarAutoHide: "true",
+        controlBarMode: "none",
+        controlBarPosition: "bottom",
+        streamType: "live",
+        expandedBufferTime: 0.2,
+        liveBufferTime: 0.1,
+        minContinuousPlayback: 1,
+        poster: "images/poster.png",
+        plugin_hls: "swf/wmp_plugin_hls.swf",
+        error: false,
+        buffer: false,
+        muted: true,
+        javascriptCallbackFunction: "onJavaScriptBridgeCreated"
+      }, {
+        allowFullScreen: "false",
+        wmode: "opaque",
+      },
+      { id: "woan_player2" }
+    );
+
+  }
+  function player3() {
+
+    var url = $("#url3").val();
+    swfobject.embedSWF(
+      "swf/woan_wmp.swf", "woan_player3", 640, 360, "10.1.0", "expressInstall.swf", {
+
+        src: url,
+        autoPlay: "true",
+        verbose: true,
+        controlBarMode: "none",
+        controlBarAutoHide: "true",
+        controlBarPosition: "bottom",
+        streamType: "live",
+        expandedBufferTime: 0.2,
+        liveBufferTime: 0.1,
+        minContinuousPlayback: 1,
+        poster: "images/poster.png",
+        plugin_hls: "swf/wmp_plugin_hls.swf",
+        error: false,
+        buffer: false,
+        muted: true,
+        javascriptCallbackFunction: "onJavaScriptBridgeCreated"
+        
+      }, {
+        allowFullScreen: "false",
+        wmode: "opaque"
+      },
+      { id: "woan_player3" }
+    );
+
+  }
+  function player4() {
+
+    var url = $("#url4").val();
+    swfobject.embedSWF(
+      "swf/woan_wmp.swf", "woan_player4", 640, 360, "10.1.0", "expressInstall.swf", {
+
+        src: url,
+        autoPlay: "true",
+        verbose: true,
+        controlBarMode: "none",
+        controlBarAutoHide: "true",
+        controlBarPosition: "bottom",
+        streamType: "live",
+        expandedBufferTime: 0.2,
+        liveBufferTime: 0.1,
+        minContinuousPlayback: 1,
+        poster: "images/poster.png",
+        plugin_hls: "swf/wmp_plugin_hls.swf",
+        error: false,
+        buffer: false,
+        muted: true,
+        javascriptCallbackFunction: "onJavaScriptBridgeCreated"
+        
+      }, {
+        allowFullScreen: "false",
+        wmode: "opaque"
+      },
+      { id: "woan_player4" }
+    );
+
+  }
+</script>
+</html>
