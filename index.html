@@ -84,6 +84,7 @@
       border:1px solid  #5bc0de;
       width:640px;
       height:360px;
+      background-color: #000;
     }
 
     .volumn-css {
@@ -121,9 +122,10 @@
         <el-button @click="globalDownHandle" class="global-call-css global-call-on" v-if="phone_status && (chosenum == null)"></el-button>
         <div class="player-wrapper dom1"  ref="dom1" ref="btn" > 
           <section class="zoom1">
-            <div id="woan_player1"  class="woan-player">
-              <p>请在下方填写播放地址</p>
-              
+            <div class="woan-player">
+              <div id="woan_player1"  class="woan-player">
+                <p>请在下方填写播放地址</p>
+              </div>
             </div>
             <!-- <div class="btn-wrapper"> -->
               <div>
@@ -164,8 +166,10 @@
         </div>
         <div class="player-wrapper" ref="dom2">
           <section class="zoom2">
-            <div id="woan_player2" class="woan-player" >
-              <p>请在下方填写播放地址</p>
+            <div class="woan-player">
+              <div id="woan_player2" class="woan-player" >
+                <p>请在下方填写播放地址</p>
+              </div>
             </div>
             <!-- <div class="btn-wrapper"> -->
             <div>
@@ -203,8 +207,10 @@
 
         <div  class="player-wrapper"  ref="dom3" >
           <section class="zoom3">
-            <div id="woan_player3"  class="woan-player">
-              <p>请在下方填写播放地址</p>
+            <div class="woan-player">
+              <div id="woan_player3"  class="woan-player">
+                <p>请在下方填写播放地址</p>
+              </div>
             </div>
             <div>
               <div>
@@ -240,8 +246,10 @@
         </div>
         <div  class="player-wrapper"   ref="dom4" >
           <section class="zoom4">
-            <div id="woan_player4"  class="woan-player">
-              <p>请在下方填写播放地址</p>    
+            <div class="woan-player">
+              <div id="woan_player4"  class="woan-player">
+                <p>请在下方填写播放地址</p>    
+              </div>
             </div>
             <div>
               <div>
@@ -863,28 +871,49 @@
             vm.volumn_player3 = false
           break;
           case 'woan_player4':
-            vm.volumn_player4 = falses
+            vm.volumn_player4 = false
           break;
         }
       }catch(err) {}
     }
   }
   function onMediaPlayerStateChange(state, playerId) {
-        //console.log("state change: " + state);
+    // document.getElementById(playerId).play();
+    console.log(playerId + ":state change: " + state);
+    if (state == 'uninitialized') {
+        switch (playerId) {
+          case 'woan_player1':
+            setTimeout (function () {
+              player1();
+            }, 3000)
+          break;
+          case 'woan_player2':
+            setTimeout (function () {
+              player2();
+            }, 3000)
+          break;
+          case 'woan_player3':
+            setTimeout (function () {
+              player3();
+            }, 3000)
+          break;
+          case 'woan_player4':
+            setTimeout (function () {
+              player4();
+            }, 3000)
+          break;
+        }
+    }
   }
   function onJavaScriptBridgeCreated(playerId, event_str) {
     if ("onJavaScriptBridgeCreated" != event_str) {
       return;
     }
-    document.getElementById(playerId).addEventListener("hover", function (e) {
-      console.log(e, '=========s');
-    });
     //监听播放时间与时长事件
     document.getElementById(playerId).addEventListener("mediaPlayerStateChange", "onMediaPlayerStateChange");
   } 
   function player1() {
     var url = $("#url1").val();
-    console.log(url, '------')
     swfobject.embedSWF(
       "swf/woan_wmp.swf", "woan_player1", 640, 360, "10.1.0", "expressInstall.swf", {
 
